@@ -27,10 +27,10 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 	<link href="https://fonts.googleapis.com/css?family=Rufina:400,700" rel="stylesheet">
 
 	<!-- title of site -->
-	<title>Le Grand Maroc Car</title>
+	<title>Admin</title>
 
 	<!-- For favicon png -->
-	<link rel="shortcut icon" type="image/icon" href="assets/logo/Red & White Minimalist Automotive Car Logo (2).png" />
+	<link rel="shortcut icon" type="image/icon" href="../logo/Red & White Minimalist Automotive Car Logo (2).png" />
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 	<!-- SweetAlert2 JS -->
@@ -39,6 +39,7 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 
 	<!--linear icon css-->
 	<link rel="stylesheet" href="../css/linearicons.css">
+	
 
 	<!--flaticon.css-->
 	<link rel="stylesheet" href="../css/flaticon.css">
@@ -75,6 +76,7 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 	</script>
 
 	<?
+	include('application/users.php');
 
 	include('application/deletemessage.php');
 
@@ -356,7 +358,7 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 						$date_de_debut = $rowreservation["date_de_debut"];
 						$date_de_fin = $rowreservation["date_de_fin"];
 						$res_id = $rowreservation["ID_reservation"];
-					
+
 
 				?>
 						<tr>
@@ -465,17 +467,27 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 			<h2>Option</h2>
 		</div>
 		<div class="container">
-			<div class="service-content">
-				<div class="row">
+			<div id="service-content" class="service-content">
+				<div class="row" id="service">
 					<div class="col-md-4 col-sm-6">
 						<div class="single-service-item" style="cursor: pointer;">
 							<div class="single-service-icon">
-								<img src="../images/manager.png" onclick="gerer_admins('admins');">
+								<img src="../images/businessman.png" onclick="gerer_admins('admins');">
 							</div>
-							<h2>gérer les administrateurs</h2>
+							<h2><a href="#">gérer les administrateurs</a></h2>
 						</div>
 					</div>
+					<div class="col-md-4 col-sm-6">
+						<div class="single-service-item">
+							<div class="single-service-icon">
+								<img src="../images/teamwork.png" onclick="gerer_admins('users');">
+							</div>
+							<h2><a href="#">gérer les utilisateurs</a></h2>
+						</div>
+						</di>
+					</div>
 				</div>
+
 			</div>
 			<div id="admins" class="hidden">
 				<div class="section-header">
@@ -540,15 +552,14 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 							<td></td>
 							<td></td>
 							<td>
-								<form style="margin-right: -30px; margin-top:-15px;">
-									<button class="btn btn-primary btn-lg" onclick="add_admin()">
-										<i class="fa fa-plus"></i>
-									</button>
-								</form>
+							<button class="btn btn-primary btn-lg" onclick="add_admin()">
+									<i class="fa fa-plus"></i>
+								</button>
 							</td>
 								</tr>
 					</tbody>
 				</table>
+				<button class="btn btn-lg btn-primary" onclick="back('admins')">routour</button>
 			</div>
 			<div id="editForm" class="hidden">
 				<h2>Edit Admin Details</h2>
@@ -614,8 +625,63 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 					<button type="button" class="btn btn-secondary" onclick="gerer_admins('admins')">Cancel</button>
 				</form>
 			</div>
-		</div>
-
+			<div id="users" class="hidden">
+				<div class="section-header">
+					<h2>Les utilisateurs</h2>
+				</div>
+				<table class="table table-striped table-dark">
+					<thead>
+						<tr>
+							<th scope="col">ID</th>
+							<th scope="col">Nom & Prenom</th>
+							<th scope="col">Gender</th>
+							<th scope="col">Email</th>
+							<th scope="col">Telephone</th>
+							<th scope="col">CIN</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php
+						$sql_users = "SELECT * FROM  `utilisateurs`";
+						$resultusers = $conn->query($sql_users);
+						if ($resultadmin->num_rows > 0) {
+							while ($row_user = $resultusers->fetch_assoc()) {
+								$id_user = $row_user["Id_u"];
+								$nom_user = $row_user["Nom_prenom"];
+								$user_gender = $row_user["gender"];
+								$email_user = $row_user["Email"];
+								$tele_user = $row_user["Telephone"];
+								$CIN_user = $row_user["CIN"];
+								$ville = $row_user["ville"];
+						?>
+								<tr>
+									<th scope="row"><?php echo $id_user; ?></th>
+									<td><?php echo $nom_user; ?></td>
+									<td><?php echo $user_gender; ?></td>
+									<td><?php echo $email_user; ?></td>
+									<td><?php echo $tele_user; ?></td>
+									<td><? echo $CIN_user ?></td>
+									<td>
+										<form style="margin-top: -15px;" method="post" onsubmit="confirmDeletion(event)">
+											<button type="submit" class="btn btn-danger btn-lg">
+												<i class="fa fa-trash"></i>
+											</button>
+											<input type="text" class="hidden" name="delet_user_id" value="<? echo $id_user ?>">
+										</form>
+									</td>
+								</tr>
+								<tr>
+							<?php
+							}
+						} else {
+							echo "<tr><td colspan='6'>No records found</td>";
+						}
+							?>
+					</tbody>
+				</table>
+				<button class="btn btn-lg btn-primary" onclick="back('users')">routour</button>
+			</div>
 	</section>
 	<?
 	$conn->close();
@@ -692,6 +758,17 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 		<? endif ?>
 	</script>
 	<script>
+		<? if($deleted_user): ?>
+			Swal.fire({
+				icon: 'success',
+				title: 'Deleted!',
+				text: 'Lutilisateur a ete bien supprime .',
+				showConfirmButton: true,
+			});
+		<? endif ?>
+	</script>
+	</script>
+	<script>
 		<? if ($deleted_res) : ?>
 			Swal.fire({
 				icon: 'success',
@@ -708,15 +785,29 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 				title: 'supprimée',
 				showConfirmButton: true,
 			})
-		<? else : ?>
-			Swal.fire({
-				icon: 'warning',
-				text: '<? echo $message ?>',
-				showConfirmButton,
-			})
 		<? endif ?>
 	</script>
 	<script src="../js/admins.js"></script>
+	<script>
+		function back(section) {
+			// Hide the specified section
+			var sectionElement = document.getElementById(section);
+			if (sectionElement) {
+				sectionElement.classList.add('hidden');
+			} else {
+				console.error("Section with ID '" + section + "' not found.");
+				return;
+			}
+
+			// Show the main service content section
+			var serviceContent = document.getElementById('service-content');
+			if (serviceContent) {
+				serviceContent.classList.remove('hidden');
+			} else {
+				console.error("Service content section not found.");
+			}
+		}
+	</script>
 </body>
 
 </html>

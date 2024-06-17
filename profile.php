@@ -16,8 +16,10 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
         $date_n = $rowuser["Dete_nec"];
         $ville = $rowuser['ville'];
         $gender = $rowuser["gender"];
+        $password = $rowuser["password"];
     }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,6 +37,11 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
             color: #1a202c;
             text-align: left;
             background: #e2e8f0;
+        }
+
+        .hidden {
+            display: none;
+            opacity: 0;
         }
 
         .main-body {
@@ -61,6 +68,8 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
             flex: 1 1 auto;
             min-height: 1px;
             padding: 1rem;
+            color: #e23939;
+            font-size: large;
         }
 
         .gutters-sm {
@@ -91,9 +100,152 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
             box-shadow: none !important;
         }
     </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
+    <?
+
+    if ($_SERVER["REQUEST_METHOD"] == 'POST' && isset($_POST['Id_re'])) {
+        $Id_anuler = $_POST["Id_re"];
+        $stmt = $conn->prepare("DELETE FROM `reservation` WHERE ID_reservation = ?");
+        if ($stmt) {
+            $stmt->bind_param("i", $Id_anuler);
+            if ($stmt->execute()) {
+                $deleted_reservation = true;
+                echo "Reservation deleted successfully.";
+            } else {
+                echo "Error executing delete statement: " . $stmt->error;
+            }
+            $stmt->close();
+        } else {
+            echo "Error preparing delete statement: " . $conn->error;
+        }
+    }
+
+
+    if (
+        $_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['id_update'], $_POST['Nom'], $_POST['tele'], $_POST['email'], $_POST['ville'], $_POST['password'], $_POST['New_password'])
+    ) {
+        $id_update = $_POST['id_update'];
+        $nom_new = $_POST['Nom'];
+        $telephone_new = $_POST['tele'];
+        $email_new = $_POST['email'];
+        $ville_new = $_POST['ville'];
+        $password_old = $_POST['password'];
+        $password_new = $_POST['New_password'];
+
+        // Update query for Nom_prenom (if provided)
+        if (!empty($nom_new)) {
+            $sql = "UPDATE `utilisateurs` SET Nom_prenom = ? WHERE Id_u = ?";
+            $stmt = $conn->prepare($sql);
+            if ($stmt) {
+                $stmt->bind_param("si", $nom_new, $id_update);
+                if ($stmt->execute()) {
+                    $f++;
+                } else {
+                    echo "Error updating Nom_prenom: " . $stmt->error . "<br>";
+                }
+                $stmt->close();
+            } else {
+                echo "Error preparing statement for Nom_prenom update: " . $conn->error . "<br>";
+            }
+        }
+
+        // Update query for Telephone (if provided)
+        if (!empty($telephone_new)) {
+            $sql = "UPDATE `utilisateurs` SET Telephone = ? WHERE Id_u = ?";
+            $stmt = $conn->prepare($sql);
+            if ($stmt) {
+                $stmt->bind_param("si", $telephone_new, $id_update);
+                if ($stmt->execute()) {
+                    $f++;
+                } else {
+                    echo "Error updating Telephone: " . $stmt->error . "<br>";
+                }
+                $stmt->close();
+            } else {
+                echo "Error preparing statement for Telephone update: " . $conn->error . "<br>";
+            }
+        }
+
+        // Update query for Email (if provided)
+        if (!empty($email_new)) {
+            $sql = "UPDATE `utilisateurs` SET Email = ? WHERE Id_u = ?";
+            $stmt = $conn->prepare($sql);
+            if ($stmt) {
+                $stmt->bind_param("si", $email_new, $id_update);
+                if ($stmt->execute()) {
+                    $f++;
+                } else {
+                    echo "Error updating Email: " . $stmt->error . "<br>";
+                }
+                $stmt->close();
+            } else {
+                echo "Error preparing statement for Email update: " . $conn->error . "<br>";
+            }
+        }
+
+        // Update query for Ville (if provided)
+        if (!empty($ville_new)) {
+            $sql = "UPDATE `utilisateurs` SET ville = ? WHERE Id_u = ?";
+            $stmt = $conn->prepare($sql);
+            if ($stmt) {
+                $stmt->bind_param("si", $ville_new, $id_update);
+                if ($stmt->execute()) {
+                    $f++;
+                } else {
+                    echo "Error updating Ville: " . $stmt->error . "<br>";
+                }
+                $stmt->close();
+            } else {
+                echo "Error preparing statement for Ville update: " . $conn->error . "<br>";
+            }
+        }
+
+        // Update query for Password (if provided and matches old password)
+        if (!empty($password_old) && !empty($password_new)) {
+            // Validate old password first (replace 'password_field' with your actual password column name)
+            $sql = "SELECT password FROM `utilisateurs` WHERE Id_u = ? LIMIT 1";
+            $stmt = $conn->prepare($sql);
+            if ($stmt) {
+                $stmt->bind_param("i", $id_update);
+                $stmt->execute();
+                $stmt->bind_result($hashed_password);
+                $stmt->fetch();
+                $stmt->close();
+
+                // Verify old password
+                if (password_verify($password_old, $hashed_password)) {
+                    // Hash the new password
+                    $hashed_password_new = password_hash($password_new, PASSWORD_DEFAULT);
+
+                    // Update password in database
+                    $sql = "UPDATE `utilisateurs` SET password = ? WHERE Id_u = ?";
+                    $stmt = $conn->prepare($sql);
+                    if ($stmt) {
+                        $stmt->bind_param("si", $hashed_password_new, $id_update);
+                        if ($stmt->execute()) {
+                            echo "Password updated successfully<br>";
+                        } else {
+                            echo "Error updating Password: " . $stmt->error . "<br>";
+                        }
+                        $stmt->close();
+                    } else {
+                        echo "Error preparing statement for Password update: " . $conn->error . "<br>";
+                    }
+                } else {
+                    echo "Old password verification failed<br>";
+                }
+            } else {
+                echo "Error preparing statement for retrieving old password: " . $conn->error . "<br>";
+            }
+        }
+    }
+    ?>
     <div class="container">
         <div class="main-body">
 
@@ -124,60 +276,93 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
                     </div>
                 </div>
                 <div class="col-md-8">
+                    <h3>Votre informations personnel</h3>
                     <div class="card mb-3">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <h6 class="mb-0">Full Name</h6>
+                            <div id="info">
+                                <div class="row">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Full Name</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <? echo $usernameinfo ?>
+                                    </div>
                                 </div>
-                                <div class="col-sm-9 text-secondary">
-                                    <? echo $usernameinfo ?>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Email</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <h6><? echo $email_res ?></h6>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Phone</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <? echo $tele_res ?> </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">gender</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <? echo $gender ?>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">ville</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <? echo $ville ?>
+                                    </div>
+                                </div>
+                                <hr>
+                                <hr>
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <a class="btn btn-danger btn-lg" onclick="edit_details();" style="color:#fff">Edit</a>
+                                    </div>
                                 </div>
                             </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <h6 class="mb-0">Email</h6>
-                                </div>
-                                <div class="col-sm-9 text-secondary">
-                                    <h6><? echo $email_res ?></h6>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <h6 class="mb-0">Phone</h6>
-                                </div>
-                                <div class="col-sm-9 text-secondary">
-                                    <? echo $tele_res ?>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <h6 class="mb-0">gender</h6>
-                                </div>
-                                <div class="col-sm-9 text-secondary">
-                                    <? echo $gender ?>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <h6 class="mb-0">ville</h6>
-                                </div>
-                                <div class="col-sm-9 text-secondary">
-                                    <? echo $ville ?>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-sm-12">
-                                    <a class="btn btn-info " target="__blank" href="https://www.bootdey.com/snippets/view/profile-edit-data-and-skills">Edit</a>
-                                </div>
+                            <div id="edit_form" class="hidden">
+                                <form method="post">
+                                    <input type="text" name="id_update" class="hidden" value="<? echo $ID ?>">
+                                    <div>
+                                        <label>Nom & Prenom</label>
+                                        <input type="text" placeholder="<? echo $usernameinfo ?>" class="form-control" name="Nom">
+                                    </div>
+                                    <div>
+                                        <label>Telephone</label>
+                                        <input type="text" placeholder="<? echo $tele_res ?>" class="form-control" name="tele">
+                                    </div>
+                                    <div>
+                                        <label>Email</label>
+                                        <input type="text" placeholder="<? echo $email_res ?>" class="form-control" name="email">
+                                    </div>
+                                    <div>
+                                        <label>Ville</label>
+                                        <input type="text" placeholder="<? echo $ville ?>" class="form-control" name="ville">
+                                    </div>
+                                    <div>
+                                        <label>mot de pass</label>
+                                        <input type="text" placeholder="ancien mot de passe" class="form-control" name="password">
+                                        <br>
+                                        <input type="text" placeholder="nouveau mot de passe" name="New_password" class="form-control" />
+                                    </div>
+                                    <button class="btn btn-sm btn-info" type="submit">Sauvgarder</button>
+                                    <button class="btn btn-sm btn-danger" onclick="anuller(event)">Anuller</button>
+                                </form>
                             </div>
                         </div>
                     </div>
+                    <h3>Votre Reservations</h3>
                     <?
                     $querysqluser = "SELECT `ID_reservation`, `Validation`, `Id_u`, `date_de_debut`, `date_de_fin`, `ID_voiture`
                      FROM `reservation` WHERE Id_u = $ID";
@@ -186,6 +371,7 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
                     // Check if there are rows returned
                     if ($resuser->num_rows > 0) {
                         while ($rowuser = $resuser->fetch_assoc()) {
+                            $id_resee = $rowuser["ID_reservation"];
                             $validation = $rowuser['Validation'];
                             $date1 = $rowuser['date_de_debut'];
                             $date2 = $rowuser['date_de_fin'];
@@ -206,13 +392,28 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
                             <div class="row gutters-sm">
                                 <div class="col-sm-6 mb-3">
                                     <div class="card h-100">
-                                        <div class="card-body">
-                                            <h6 class="d-flex align-items-center mb-3"><i class="material-icons text-info mr-2">Reservation</h6>
-                                            <small><? echo $voituree ?></small><br>
-                                            <small><? echo $validation ?></small><br>
-                                            <small><? echo $date1 ?></small><br>
-                                            <small><? echo $date2 ?></small><br>
-                                            <button class="btn btn-info">Anuller</button>
+                                        <?php if ($validation == 'oui') : ?>
+                                            <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+                                                    const myElement = document.getElementById('card-body');
+                                                    myElement.style.Color = '#7FFF00';
+                                                });
+                                            </script>
+                                        <?php endif; ?>
+                                        </script>
+                                        <div class="card-body" id="card-body">
+                                            voituree:
+                                            <small><?php echo $voituree ?></small><br>
+                                            validation:
+                                            <small><?php echo $validation ?></small><br>
+                                            a:
+                                            <small><?php echo $date1 ?></small><br>
+                                            de:
+                                            <small><?php echo $date2 ?></small><br>
+                                            <form method="post" onsubmit="confirmDeletion(event)">
+                                                <input type="hidden" name="Id_re" value="<?php echo $id_resee ?>">
+                                                <button class="btn btn-danger" type="submit">Anuller</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -229,8 +430,64 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.bundle.min.js"></script>
     <script type="text/javascript">
-
     </script>
+    <script>
+        function confirmDeletion(event) {
+            event.preventDefault(); // Prevent the form from submitting immediately
+
+            Swal.fire({
+                title: 'attetion',
+                text: "Êtes-vous sûr de vouloir faire cette action ?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'oui',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    event.target.submit(); // Submit the form if the user confirms
+                }
+            });
+
+            return false; // Prevent form submission
+        }
+    </script>
+    <script>
+        function edit_details() {
+            var info = document.getElementById('info');
+            info.classList.add('hidden');
+            var edi = document.getElementById('edit_form');
+            edi.classList.remove('hidden');
+        }
+
+        function anuller(event) {
+            event.preventDefault();
+            var info = document.getElementById('info');
+            info.classList.remove('hidden');
+            var edi = document.getElementById('edit_form');
+            edi.classList.add('hidden');
+
+        }
+    </script>
+    <?php if ($f > 0) : ?>
+        <script>
+            swal.fire({
+                icon: 'success',
+                title: 'Modifié', // Fixed typo here, assuming you meant 'Modifié' for 'Modified'
+                showConfirmButton: true // Fixed camelCase for showConfirmButton
+            });
+        </script>
+    <?php endif; ?>
+    <?php if ($deleted_reservation) : ?>
+        <script>
+            swal.fire({
+                icon: 'success',
+                title: 'anulleé', // Fixed typo here, assuming you meant 'Modifié' for 'Modified'
+                showConfirmButton: true // Fixed camelCase for showConfirmButton
+            });
+        </script>
+
+    <? endif ?>
 </body>
 
 </html>

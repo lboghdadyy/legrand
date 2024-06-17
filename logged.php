@@ -4,7 +4,7 @@ $deleted = false;
 $update = false;
 
 if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
-	header('Location: ../../master.php');
+	header('Location: master.php');
 	exit; // It's a good practice to call exit after a header redirect.
 } else {
 	$usernameee = $_GET['variable'];
@@ -75,11 +75,11 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 	$reserved = false;
 	$contacted = false;
 	include('connection.php');
-	$sql = "SELECT * FROM utilisateurs WHERE Nom_prenom = '$usernameee'";
-	$result = $conn->query($sql);
-	if ($result) {
-		if ($result->num_rows > 0) {
-			while ($row = $result->fetch_assoc()) {
+	$sqllogged = "SELECT * FROM utilisateurs WHERE Nom_prenom = '$usernameee'";
+	$resultlogged = $conn->query($sqllogged);
+	if ($resultlogged) {
+		if ($resultlogged->num_rows > 0) {
+			while ($row = $resultlogged->fetch_assoc()) {
 				$id_u = $row["Id_u"];
 			}
 		} else {
@@ -159,7 +159,7 @@ if (!isset($_GET["variable"]) || empty($_GET['variable'])) {
 						<div class="collapse navbar-collapse menu-ui-design" id="navbar-menu">
 							<ul class="nav navbar-nav navbar-right">
 								<li><a href="profile.php?variable='<?php echo $usernameee; ?>'"><?  echo $usernameee ?></a></li>
-								<li><a href="#">désconnecter</a></li>
+								<li><a href="master.php">désconnecter</a></li>
 							</ul><!--/.nav -->
 						</div><!-- /.navbar-collapse -->
 					</div><!--/.container-->

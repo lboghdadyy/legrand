@@ -8,9 +8,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $telephone = $conn->real_escape_string($_POST['numero_telephone']);
     $cin = $conn->real_escape_string($_POST['cin']);
     $ville = $conn->real_escape_string($_POST['ville']);
+    $password = $_POST['pass'];
 
-    $sql = "INSERT INTO utilisateurs (Nom_prenom, gender, Date_nec, Email, Telephone, CIN, ville) 
-            VALUES ('$nom_prenom', '$gender', '$date_nec', '$email', '$telephone', '$cin', '$ville')";
+    $sql = "INSERT INTO utilisateurs (Nom_prenom, gender, Date_nec, Email,	password , Telephone, CIN, ville) 
+            VALUES ('$nom_prenom', '$gender', '$date_nec', '$email','$password' ,'$telephone', '$cin', '$ville')";
 
     // Execute query
     if ($conn->query($sql) === TRUE) {
@@ -87,6 +88,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="">Votre CIN</label>
                 <div class="column">
                     <input type="text" name="cin" placeholder="CIN" required />
+                </div>
+            </div>
+            <div class="input-box">
+                <label>Password</label>
+                <div class="column">
+                    <input type="text" name="pass" required />
                 </div>
             </div>
             <button type="submit">Suivant</button>
